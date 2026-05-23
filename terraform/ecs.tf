@@ -33,7 +33,7 @@ resource "aws_ecs_service" "s3_service" {
   desired_count   = 1
 
   network_configuration {
-    subnets         = data.aws_subnets.default.ids
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
   }
 }
@@ -49,7 +49,7 @@ resource "aws_ecs_service" "sqs_service" {
   desired_count   = 1
 
   network_configuration {
-    subnets         = data.aws_subnets.default.ids
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
   }
 }
