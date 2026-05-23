@@ -2,6 +2,7 @@
 Mono repo: All applications &amp; IaC goes into a single repository. 
 Mono repo: All applications & IaC goes into a single repository.
 
+'''
 ecs-monorepo/
 │
 ├── applications/
@@ -36,7 +37,7 @@ ecs-monorepo/
 │
 ├── README.md
 └── .gitignore
-
+'''
 
 
 Introduction	1
