@@ -1,3 +1,64 @@
+# Coaching 3.18 - ECS Multi-Service Deployment
+
+Mono repo: All applications & IaC goes into a single repository.
+
+## Repository Structure
+
+ecs-monorepo/
+├── applications/
+│ ├── s3-service/
+│ │ ├── app.py
+│ │ ├── requirements.txt
+│ │ ├── Dockerfile
+│ │ └── .dockerignore
+│ └── sqs-service/
+│ ├── app.py
+│ ├── requirements.txt
+│ ├── Dockerfile
+│ └── .dockerignore
+├── terraform/
+│ ├── main.tf
+│ ├── variables.tf
+│ ├── outputs.tf
+│ ├── provider.tf
+│ ├── ecs.tf
+│ ├── iam.tf
+│ ├── ecr.tf
+│ ├── s3.tf
+│ └── sqs.tf
+├── .github/
+│ └── workflows/
+│ ├── terraform.yml
+│ ├── s3-service.yml
+│ └── sqs-service.yml
+├── README.md
+└── .gitignore
+
+## Services
+
+- **S3 Upload Service** (Port 5001): Flask app that uploads files to S3 bucket
+- **SQS Sender Service** (Port 5002): Flask app that sends messages to SQS queue
+
+## Prerequisites
+
+Add these secrets to GitHub repository:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+## Deployment Order
+
+1. **Infrastructure**: Manually trigger `Terraform CD` workflow
+2. **Applications**: Automatically deployed on push to `main` branch
+
+## Accessing Services
+
+After deployment, get public IP from ECS console or run:
+```bash
+aws ecs list-tasks --cluster ecs-monorepo-cluster --service-name s3-upload-service
+aws ecs describe-tasks --cluster ecs-monorepo-cluster --tasks <task-id>
+
+_____________________
+
 # Coaching-3.18---ECS-Multi-Service-Deployment
 Mono repo: All applications &amp; IaC goes into a single repository. 
 # Coaching 3.18 - ECS Multi-Service Deployment
