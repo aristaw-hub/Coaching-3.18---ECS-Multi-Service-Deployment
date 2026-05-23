@@ -6,6 +6,13 @@ on:
     paths:
       - "applications/s3-service/**"
 
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag (optional, default latest)"
+        required: false
+        default: "latest"
+
 env:
   AWS_REGION: ap-southeast-1
   ACCOUNT_ID: 255945442255
@@ -20,6 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ---------------- AWS LOGIN ----------------
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -32,19 +40,27 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION | \
           docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
+      # ---------------- BUILD ----------------
       - name: Build image
         run: |
           docker build -t s3-service ./applications/s3-service
 
+      # ---------------- TAG ----------------
       - name: Tag image
         run: |
-          docker tag s3-service:latest \
-          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO:latest
+          IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}
 
+          docker tag s3-service:latest \
+          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO:$IMAGE_TAG
+
+      # ---------------- PUSH ----------------
       - name: Push image
         run: |
-          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO:latest
+          IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}
 
+          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO:$IMAGE_TAG
+
+      # ---------------- DEPLOY ----------------
       - name: Deploy ECS
         run: |
           aws ecs update-service \
