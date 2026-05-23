@@ -1,0 +1,69 @@
+name: Terraform Infra CI/CD
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "terraform/**"
+
+  workflow_dispatch:   # manual deploy button
+    inputs:
+      action:
+        description: "apply or destroy"
+        required: true
+        default: "apply"
+
+env:
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      # ---------------- CHECKOUT ----------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ---------------- AWS AUTH ----------------
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ---------------- TERRAFORM SETUP ----------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # ---------------- INIT ----------------
+      - name: Terraform Init
+        run: terraform init
+
+      # ---------------- FORMAT CHECK ----------------
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      # ---------------- VALIDATE ----------------
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ---------------- PLAN (PR ONLY) ----------------
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan
+
+      # ---------------- APPLY (MANUAL ONLY) ----------------
+      - name: Terraform Apply
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve
+
+      # ---------------- DESTROY (OPTIONAL SAFETY) ----------------
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve
