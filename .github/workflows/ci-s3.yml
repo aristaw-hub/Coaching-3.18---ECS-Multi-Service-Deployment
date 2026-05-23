@@ -6,12 +6,20 @@ on:
     paths:
       - "applications/s3-service/**"
 
+  workflow_dispatch:   # ✅ manual run button
+    inputs:
+      run_type:
+        description: "manual CI run"
+        required: false
+        default: "manual"
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -22,6 +30,6 @@ jobs:
         working-directory: applications/s3-service
         run: pip install -r requirements.txt
 
-      - name: Basic Import Test
+      - name: Import test
         working-directory: applications/s3-service
-        run: python -c "import flask, boto3; print('S3 OK')"
+        run: python -c "import flask, boto3; print('S3 CI OK')"
