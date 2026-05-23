@@ -1,0 +1,27 @@
+name: CI - SQS Service
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "applications/sqs-service/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: applications/sqs-service
+        run: pip install -r requirements.txt
+
+      - name: Basic Import Test
+        working-directory: applications/sqs-service
+        run: python -c "import flask, boto3; print('SQS OK')"

@@ -1,0 +1,53 @@
+name: CD - Deploy SQS Service
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "applications/sqs-service/**"
+
+env:
+  AWS_REGION: ap-southeast-1
+  ACCOUNT_ID: 255945442255
+  REPO: sqs-service-arista
+  ECS_SERVICE: sqs-service
+  ECS_CLUSTER: ecs-arista-cluster
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - name: Build image
+        run: |
+          docker build -t sqs-service ./applications/sqs-service
+
+      - name: Tag image
+        run: |
+          docker tag sqs-service:latest \
+          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO:latest
+
+      - name: Push image
+        run: |
+          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO:latest
+
+      - name: Deploy ECS
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment
