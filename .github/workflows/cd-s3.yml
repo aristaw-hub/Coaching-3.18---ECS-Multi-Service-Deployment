@@ -18,7 +18,7 @@ env:
   ACCOUNT_ID: 255945442255
   REPO: s3-service-arista
   ECS_SERVICE: s3-service
-  ECS_CLUSTER: ecs-arista-cluster
+  ECS_CLUSTER: ecs-lab-cluster-arista
 
 jobs:
   deploy:
